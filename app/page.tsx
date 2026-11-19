@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export default function Home(){return <main className="shell center"><div className="eyebrow">CINEMA FUNNEL · ARCHIVO 001</div><div className="folder">▣</div><h1>TIENES UNA IDEA<br/><em>SIN TERMINAR.</em></h1><p>Hay una idea que nunca terminaste. Y puede que todavía tenga algo que mostrarte.</p><div className="actions"><Link className="btn" href="/experiencia">ABRIR ARCHIVO →</Link><Link className="btn ghost" href="/oferta">VER PRODUCTO</Link></div><small>Experiencia ficticia · No accedemos a tus archivos</small></main>}

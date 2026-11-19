@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test';
+test('complete journey, persistence, NEXO and offer',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ await page.getByRole('link',{name:'ABRIR ARCHIVO'}).click();
+ await page.getByRole('button',{name:'ABRIR ARCHIVO'}).click();
+ await page.getByRole('button',{name:'No sé programar'}).click();
+ await page.getByRole('button',{name:'CONTINUAR'}).click();
+ await page.getByRole('button',{name:'Historia animada',exact:true}).click();
+ await page.reload();
+ await expect(page.getByRole('button',{name:'Historia animada',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByText('Pregúntale a NEXO').click();
+ await page.getByLabel('Tu pregunta').fill('precio');
+ await page.getByRole('button',{name:'Enviar',exact:true}).click();
+ await expect(page.getByRole('log').last()).toContainText('US$9,99');
+ await page.getByRole('button',{name:'ABRIR PRODUCCION'}).click();
+ await expect(page.getByText('Demostración auténtica pendiente', {exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ await page.getByRole('link',{name:'DESCUBRIR EL SISTEMA'}).click();
+ await expect(page.getByText('CHECKOUT PENDIENTE DE CONFIGURAR')).toBeVisible();
+ await page.getByText('¿Incluye Claude Code o Codex?').click();
+ await expect(page.getByText('No. Necesitas acceso')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ expect(errors).toEqual([]);
+});
+test('restart clears choices',async({page})=>{
+ await page.goto('/experiencia');
+ await page.getByRole('button',{name:'ABRIR ARCHIVO'}).click();
+ await page.getByRole('button',{name:'No sé programar'}).click();
+ await page.getByRole('button',{name:'REINICIAR'}).click();
+ await page.getByRole('button',{name:'ABRIR ARCHIVO'}).click();
+ await expect(page.getByRole('button',{name:'CONTINUAR'})).toHaveCount(0);
+});

@@ -1,0 +1,8 @@
+'use client';
+import {useState} from 'react';
+export default function NexoChat(){
+ const [messages,setMessages]=useState<{role:string;text:string}[]>([]);
+ const [input,setInput]=useState('');
+ function send(e:React.FormEvent){e.preventDefault();const text=input.trim();if(!text)return;const q=text.toLowerCase();const reply=/precio|cuesta|pago/.test(q)?'El precio configurado es US$9,99, pago único. Los servicios de IA se pagan aparte. Consulta los detalles en la oferta.':/program|código|codigo/.test(q)?'Puedes trabajar con instrucciones en lenguaje natural. Sí necesitas configurar el entorno y sus dependencias.':/demo|video|ejemplo/.test(q)?'La demostración auténtica todavía está pendiente. Esta experiencia narrativa no es una prueba del producto.':'Soy un asistente narrativo con respuestas predefinidas, no una IA conectada. Puedo orientarte sobre precio, programación y la demo. Tu mensaje no se envía a ningún servidor.';setMessages(m=>[...m.slice(-18),{role:'TÚ',text},{role:'NEXO',text:reply}]);setInput('')}
+ return <details className="nexoHelp"><summary>◉ Pregúntale a NEXO</summary><p className="notice">Chat narrativo · Respuestas predefinidas · Sin IA en tiempo real</p><div className="chatlog" role="log" aria-live="polite">{messages.map((m,i)=><p key={i}><strong>{m.role}</strong> {m.text}</p>)}</div><form onSubmit={send}><label htmlFor="question">Tu pregunta</label><div className="chatInput"><input id="question" value={input} onChange={e=>setInput(e.target.value)} maxLength={300} placeholder="¿Necesito saber programar?"/><button className="btn" disabled={!input.trim()}>Enviar</button></div></form></details>
+}
