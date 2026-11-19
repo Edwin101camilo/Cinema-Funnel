@@ -41,8 +41,29 @@ test('intro plays once, still matches geometry and remains interactive',async({p
  await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:7000});
 });
 test('failed video falls back to interactive still',async({page})=>{
- await page.route('**/studio-intro-desktop.mp4',route=>route.abort());
+ await page.route('**/studio-intro-*.mp4',route=>route.abort());
  await page.goto('/');
  await page.getByRole('button',{name:'Encender computadora'}).click();
  await expect(page.getByRole('button',{name:'Abrir archivo IDEA 001'})).toBeVisible();
+});
+
+test('vertical mobile frame and touch target across iPhone sizes',async({page})=>{
+ for(const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932}]){
+  await page.setViewportSize(viewport);
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.goto('/');
+  await page.getByRole('button',{name:'Encender computadora'}).click();
+  const file=page.getByRole('button',{name:'Abrir archivo IDEA 001'});
+  await expect(file).toBeVisible();
+  const box=await file.boundingBox(),monitor=await page.locator('.real-monitor').boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(144);
+  expect(box!.height).toBeGreaterThanOrEqual(112);
+  expect(box!.y).toBeGreaterThanOrEqual(monitor!.y);
+  expect(box!.y+box!.height).toBeLessThanOrEqual(monitor!.y+monitor!.height);
+  await expect(page.locator('video')).toHaveAttribute('preload','metadata');
+  await expect(page.locator('video source')).toHaveAttribute('src','/cinema/scene-01/studio-intro-mobile.mp4');
+  const plane=await page.locator('.cinema-plane').boundingBox();
+  expect(plane!.width/plane!.height).toBeCloseTo(512/910,2);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+ }
 });

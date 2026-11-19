@@ -14,3 +14,17 @@
 .opening .camera{transform-origin:50% 40%}
 @media(max-aspect-ratio:3/4){.cinema-plane{width:150vw;top:47%}.real-monitor .screen-notification{top:7%;right:5%}.real-monitor .mystery-file{top:34%}.cinema-backdrop{opacity:.45}}
 @media(prefers-reduced-motion:reduce){.cinema-intro{transition:none}}
+/* Mobile pack: exact 512×910 frame, fully visible; desktop remains unchanged. */
+@media(max-width:700px){
+ .opening{min-height:0}
+ .cinema-plane{width:min(100vw,56.263736svh);aspect-ratio:512/910;top:50%}
+ .cinema-backdrop{background-image:linear-gradient(#0005,#0008),url('/cinema/scene-01/studio-idle-mobile.webp')}
+ .real-monitor{left:1.2%;top:27.7%;width:97.6%;height:31.1%}
+ .real-monitor .mystery-file{top:26%;min-width:144px;min-height:112px;gap:8px;padding:10px;touch-action:manipulation}
+ .real-monitor .mystery-file svg{width:58px}
+ .real-monitor .mystery-file span{font-size:14px}
+ .real-monitor .mystery-file small{font-size:9px}
+ .real-monitor .screen-notification{top:3%;right:5%;padding:6px;font-size:8px}
+ .real-monitor .screen-notification span{margin:4px 0}
+ .cinema-intro{transition:opacity .12s linear}
+}

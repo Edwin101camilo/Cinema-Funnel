@@ -3,11 +3,13 @@ import {useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {gsap} from 'gsap';
 import {OpeningAudio} from './audio';
-import {openingMedia} from '@/config/opening';
+import {openingMedia,mobileOpeningMedia} from '@/config/opening';
 import './opening.css';
 
 export default function Opening(){
  const root=useRef<HTMLElement>(null),timeline=useRef<gsap.core.Timeline|null>(null),audio=useRef<OpeningAudio|null>(null),clip=useRef<HTMLVideoElement>(null);
+ const [media,setMedia]=useState<typeof openingMedia|null>(null);
+ const selectedMedia=media||openingMedia;
  const [phase,setPhase]=useState<'idle'|'boot'|'file'|'travel'|'nexo'>('idle');
  const [sound,setSound]=useState(false),[voice,setVoice]=useState(false),[reduced,setReduced]=useState(false),[subtitle,setSubtitle]=useState(''),[audioError,setAudioError]=useState(''),[mediaFailed,setMediaFailed]=useState(false);
  const loadTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -20,6 +22,7 @@ export default function Opening(){
   if(!muted.current&&speaking.current&&'speechSynthesis' in window){window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='es-ES';u.rate=.85;window.speechSynthesis.speak(u)}
  }
  useEffect(()=>{
+  setMedia(matchMedia('(max-width: 700px)').matches?mobileOpeningMedia:openingMedia);
   audio.current=new OpeningAudio();
   const q=matchMedia('(prefers-reduced-motion: reduce)');setReduced(q.matches);
   const change=()=>setReduced(q.matches);q.addEventListener('change',change);
@@ -62,16 +65,16 @@ export default function Opening(){
    <div className="cinema-plane">
     {/* The decoded still remains under the video; both share exactly one geometry. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img className="cinema-still" src={openingMedia.idle} alt="" onLoad={()=>setStillReady(true)} onError={()=>setAudioError('No se pudo cargar el fotograma de espera. Conservamos el último fotograma del video.')} />
-    <video className="cinema-intro" ref={clip} muted playsInline preload="auto" poster={openingMedia.poster} style={{opacity:(ended&&stillReady)||reduced||mediaFailed?0:1}} onEnded={finishIntro} onTimeUpdate={()=>{if(clip.current&&clip.current.currentTime>=2.8&&!secondLine.current){secondLine.current=true;say('Y puede que todavía tenga algo que mostrarte.')}}} onError={()=>{setMediaFailed(true);if(playing.current)finishIntro()}}>
-     <source src={openingMedia.mp4} type="video/mp4" onError={()=>{setMediaFailed(true);if(playing.current)finishIntro()}}/>
-    </video>
+    <img className="cinema-still" src={selectedMedia.idle} alt="" onLoad={e=>{const img=e.currentTarget;void img.decode().then(()=>setStillReady(true)).catch(()=>setStillReady(true))}} onError={()=>setAudioError('No se pudo cargar el fotograma de espera. Conservamos el último fotograma del video.')} />
+    {media&&<video className="cinema-intro" ref={clip} muted playsInline preload="metadata" poster={selectedMedia.poster} style={{opacity:(ended&&stillReady)||reduced||mediaFailed?0:1}} onEnded={finishIntro} onTimeUpdate={()=>{if(clip.current&&clip.current.currentTime>=2.8&&!secondLine.current){secondLine.current=true;say('Y puede que todavía tenga algo que mostrarte.')}}} onError={()=>{setMediaFailed(true);if(playing.current)finishIntro()}}>
+     <source src={selectedMedia.mp4} type="video/mp4" onError={()=>{setMediaFailed(true);if(playing.current)finishIntro()}}/>
+    </video>}
     <div className="real-monitor">
     {(phase==='file'||phase==='travel')&&<><div className="screen-notification"><i/> SEÑAL RECUPERADA <span>1 archivo pendiente</span></div><button className="mystery-file" aria-label="Abrir archivo IDEA 001" disabled={phase!=='file'} onClick={open}><svg viewBox="0 0 100 76" aria-hidden="true"><path d="M4 14h34l10 10h48v48H4z"/><path d="M4 25h92"/></svg><span>IDEA_001</span><small>TOCA PARA RECUPERAR</small></button></>}
     </div>
    </div>
   </div>
-  {phase==='idle'&&<div className="opening-title"><p>CREADOR IA STUDIO PRESENTA</p><h1>EL ARCHIVO <span>001</span></h1><button className="power-switch" onClick={start} aria-label="Encender computadora"><span>⏻</span> ENCENDER</button><small>Una ficción interactiva · No accedemos a tus archivos</small></div>}
+  {phase==='idle'&&<div className="opening-title"><p>CREADOR IA STUDIO PRESENTA</p><h1>EL ARCHIVO <span>001</span></h1><button className="power-switch" onClick={start} aria-label="Encender computadora" disabled={!media}><span>⏻</span> ENCENDER</button><small>Una ficción interactiva · No accedemos a tus archivos</small></div>}
   <section className="nexo-arrival" tabIndex={-1} aria-label="Conexión con NEXO" hidden={phase!=='nexo'}><div className="nexo-orbit"/><p>TRANSMISIÓN RESTABLECIDA</p><h2>NEXO</h2><p>Tu idea sigue aquí.</p><small>Fin de la apertura · Prototipo para revisión visual</small><Link href="/experiencia">Continuar al recorrido anterior →</Link></section>
   <div className="film-grain" aria-hidden="true"/>
   <footer className="film-footer"><p className="film-subtitle" aria-live="polite">{subtitle}</p>{audioError&&<p role="status">{audioError}</p>}<div><span>01 / EL ARCHIVO PERDIDO</span><span>PROTOTIPO AUDIOVISUAL{reduced?' · MOVIMIENTO REDUCIDO':''}</span></div></footer>
