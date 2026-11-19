@@ -1,0 +1,14 @@
+CINEMA FUNNEL - ESCENA 01 - ASSETS PREPARADOS
+studio-intro-desktop.mp4: clip recortado a 5.8 segundos, sin audio; monitor se enciende una sola vez.
+studio-idle-desktop.webp: fotograma fijo con monitor rojo, para espera interactiva.
+studio-poster.webp: imagen de respaldo mientras carga el video.
+monitor-on.png: fotograma de referencia sin compresion con perdida para generacion del siguiente plano.
+
+INTEGRACION:
+1. Copiar assets a public/cinema/scene-01/.
+2. Reproducir studio-intro-desktop.mp4 con muted, playsInline y sin loop.
+3. Al terminar, cambiar a studio-idle-desktop.webp; mantener la interaccion IDEA_001 encima del monitor.
+4. No repetir el clip de introduccion en bucle.
+5. No se incluye version vertical: preparar encuadre movil responsive o generar asset movil especifico.
+6. El audio y el video de transicion hacia NEXO aun estan pendientes.
+7. Ajustar coordenadas HTML del monitor al fotograma real y probar Safari iOS.

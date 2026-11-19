@@ -20,3 +20,29 @@ for(const reduced of [false,true]){
   expect(errors).toEqual([]);
  });
 }
+test('intro plays once, still matches geometry and remains interactive',async({page})=>{
+ await page.goto('/');
+ const video=page.locator('.cinema-intro');
+ await expect(video).toHaveJSProperty('loop',false);
+ await expect(video).toHaveJSProperty('muted',true);
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await expect(page.getByRole('button',{name:'Abrir archivo IDEA 001'})).toBeVisible({timeout:12000});
+ await expect(video).toHaveJSProperty('ended',true);
+ await expect(page.locator('.cinema-still')).toHaveJSProperty('complete',true);
+ const bounds=await video.boundingBox(),stillBounds=await page.locator('.cinema-still').boundingBox();
+ expect(bounds).toEqual(stillBounds);
+ await page.evaluate(()=>{document.dispatchEvent(new Event('visibilitychange'))});
+ await page.waitForTimeout(700);
+ await expect(video).toHaveJSProperty('ended',true);
+ const file=await page.locator('.mystery-file').boundingBox(),monitor=await page.locator('.real-monitor').boundingBox();
+ expect(file!.x).toBeGreaterThanOrEqual(monitor!.x);
+ expect(file!.x+file!.width).toBeLessThanOrEqual(monitor!.x+monitor!.width);
+ await page.getByRole('button',{name:'Abrir archivo IDEA 001'}).click();
+ await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:7000});
+});
+test('failed video falls back to interactive still',async({page})=>{
+ await page.route('**/studio-intro-desktop.mp4',route=>route.abort());
+ await page.goto('/');
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await expect(page.getByRole('button',{name:'Abrir archivo IDEA 001'})).toBeVisible();
+});

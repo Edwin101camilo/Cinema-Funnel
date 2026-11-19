@@ -1,4 +1,5 @@
-// Add licensed, final media URLs here. Empty sources use the technical scenery.
-export const openingMedia: {mp4:string;webm:string;poster:string} = {
- mp4:'', webm:'', poster:''
+export const openingMedia = {
+ mp4:'/cinema/scene-01/studio-intro-desktop.mp4',
+ idle:'/cinema/scene-01/studio-idle-desktop.webp',
+ poster:'/cinema/scene-01/studio-poster.webp'
 };
