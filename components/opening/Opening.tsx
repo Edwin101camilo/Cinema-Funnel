@@ -5,33 +5,45 @@ import {gsap} from 'gsap';
 import {OpeningAudio} from './audio';
 import {openingMedia,mobileOpeningMedia} from '@/config/opening';
 import './opening.css';
+import NexoDialogue from './NexoDialogue';
 
 export default function Opening(){
  const root=useRef<HTMLElement>(null),timeline=useRef<gsap.core.Timeline|null>(null),audio=useRef<OpeningAudio|null>(null),clip=useRef<HTMLVideoElement>(null);
  const [media,setMedia]=useState<typeof openingMedia|null>(null);
  const selectedMedia=media||openingMedia;
  const [phase,setPhase]=useState<'idle'|'boot'|'file'|'travel'|'nexo'>('idle');
- const [sound,setSound]=useState(false),[voice,setVoice]=useState(false),[reduced,setReduced]=useState(false),[subtitle,setSubtitle]=useState(''),[audioError,setAudioError]=useState(''),[mediaFailed,setMediaFailed]=useState(false);
+ const [sound,setSound]=useState(false),[reduced,setReduced]=useState(false),[subtitle,setSubtitle]=useState(''),[audioError,setAudioError]=useState(''),[mediaFailed,setMediaFailed]=useState(false);
  const loadTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const playing=useRef(false),finished=useRef(false),secondLine=useRef(false);
- const muted=useRef(true),speaking=useRef(false),busy=useRef(false);
+ const muted=useRef(true),busy=useRef(false);
  const [stillReady,setStillReady]=useState(false);
  const [ended,setEnded]=useState(false);
- function say(text:string){
-  setSubtitle(text);
-  if(!muted.current&&speaking.current&&'speechSynthesis' in window){window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='es-ES';u.rate=.85;window.speechSynthesis.speak(u)}
+ const dive=useRef<HTMLVideoElement>(null),diveActive=useRef(false),diveDone=useRef(false);
+ const diveTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ const [diveVisible,setDiveVisible]=useState(false),[diveFallback,setDiveFallback]=useState(false);
+ function say(text:string){setSubtitle(text)}
+ function arrive(fallback=false){
+  if(diveDone.current)return;
+  diveDone.current=true;diveActive.current=false;
+  if(diveTimer.current)clearTimeout(diveTimer.current);
+  dive.current?.pause();setDiveFallback(fallback);setPhase('nexo');setSubtitle('');busy.current=false;
+ }
+ function diveFailed(){if(diveActive.current)arrive(true)}
+ function armDiveTimeout(){
+  if(diveTimer.current)clearTimeout(diveTimer.current);
+  diveTimer.current=setTimeout(()=>{if(!document.hidden&&diveActive.current)arrive(true)},8000);
  }
  useEffect(()=>{
   setMedia(matchMedia('(max-width: 700px)').matches?mobileOpeningMedia:openingMedia);
   audio.current=new OpeningAudio();
   const q=matchMedia('(prefers-reduced-motion: reduce)');setReduced(q.matches);
   const change=()=>setReduced(q.matches);q.addEventListener('change',change);
-  const visibility=()=>{if(document.hidden){timeline.current?.pause();audio.current?.mute();clip.current?.pause();window.speechSynthesis?.cancel()}else{timeline.current?.resume();if(!muted.current)void audio.current?.enable().catch(()=>{muted.current=true;setSound(false)});if(playing.current&&!finished.current&&!q.matches)void clip.current?.play().catch(()=>finishIntro())}};
+  const visibility=()=>{if(document.hidden){timeline.current?.pause();audio.current?.mute();clip.current?.pause();dive.current?.pause();if(diveTimer.current)clearTimeout(diveTimer.current)}else{if(diveActive.current){armDiveTimeout();void dive.current?.play().catch(diveFailed)}timeline.current?.resume();if(!muted.current)void audio.current?.enable().catch(()=>{muted.current=true;setSound(false)});if(playing.current&&!finished.current&&!q.matches)void clip.current?.play().catch(()=>finishIntro())}};
   document.addEventListener('visibilitychange',visibility);
-  return()=>{if(loadTimer.current)clearTimeout(loadTimer.current);timeline.current?.kill();audio.current?.dispose();window.speechSynthesis?.cancel();q.removeEventListener('change',change);document.removeEventListener('visibilitychange',visibility)}
+  return()=>{if(diveTimer.current)clearTimeout(diveTimer.current);dive.current?.pause();if(loadTimer.current)clearTimeout(loadTimer.current);timeline.current?.kill();audio.current?.dispose();q.removeEventListener('change',change);document.removeEventListener('visibilitychange',visibility)}
  },[]);
  async function toggleSound(){
-  if(sound){muted.current=true;setSound(false);audio.current?.mute();window.speechSynthesis?.cancel();return}
+  if(sound){muted.current=true;setSound(false);audio.current?.mute();return}
   try{await audio.current?.enable();muted.current=false;setSound(true);setAudioError('');audio.current?.cue(330)}
   catch{setAudioError('El audio no pudo activarse. Puedes continuar con subtítulos.')}
  }
@@ -50,16 +62,16 @@ export default function Opening(){
   void clip.current?.play().catch(()=>{setMediaFailed(true);finishIntro()});
  }
  function open(){
-  if(busy.current||phase!=='file')return;busy.current=true;setPhase('travel');
-  const scope=gsap.utils.selector(root);timeline.current?.kill();
-  timeline.current=gsap.timeline().call(()=>{say('Restableciendo conexión.');audio.current?.cue(190,2)})
-   .to(scope('.camera'),{scale:reduced?1:4,opacity:0,duration:reduced?.3:3.2,ease:'power3.inOut'})
-   .call(()=>{setPhase('nexo');say('Soy NEXO. Tu idea sigue aquí.');audio.current?.cue(440,.8);busy.current=false})
-   .fromTo(scope('.nexo-arrival'),{opacity:0},{opacity:1,duration:reduced?.2:1.5});
+  if(busy.current||phase!=='file')return;busy.current=true;setPhase('travel');setSubtitle('');
+  timeline.current?.kill();
+  gsap.to(root.current?.querySelector('.real-monitor')||[],{opacity:0,duration:reduced?0:.25});
+  if(reduced){arrive(true);return}
+  diveActive.current=true;armDiveTimeout();
+  void dive.current?.play().catch(diveFailed);
  }
  useEffect(()=>{if(phase==='file')root.current?.querySelector<HTMLButtonElement>('.mystery-file')?.focus({preventScroll:true});if(phase==='nexo')root.current?.querySelector<HTMLElement>('.nexo-arrival')?.focus({preventScroll:true})},[phase]);
  return <main ref={root} className="opening" data-phase={phase} data-reduced={reduced}>
-  <header className="film-controls"><Link href="/oferta">VER PRODUCTO ↗</Link><div><button onClick={toggleSound} aria-pressed={sound}>{sound?'SONIDO ON':'SONIDO OFF'}</button><button aria-pressed={voice} onClick={()=>{speaking.current=!voice;setVoice(!voice);if(voice)window.speechSynthesis?.cancel()}}>VOZ {voice?'ON':'OFF'}</button></div></header>
+  <header className="film-controls"><Link href="/oferta">VER PRODUCTO ↗</Link><div><button onClick={toggleSound} aria-pressed={sound}>{sound?'SONIDO ON':'SONIDO OFF'}</button><span className="voice-pending">VOZ PENDIENTE</span></div></header>
   <div className="camera" aria-hidden={phase==='nexo'}>
    <div className="cinema-backdrop" aria-hidden="true"/>
    <div className="cinema-plane">
@@ -74,8 +86,19 @@ export default function Opening(){
     </div>
    </div>
   </div>
+  {/* Remains mounted after ended so the final decoded frame never disappears. */}
+  <div className="dive-layer" aria-hidden="true" style={{opacity:diveVisible||diveFallback?1:0}}>
+   {/* eslint-disable-next-line @next/next/no-img-element */}
+   <img src="/media/nexo-dive-last.webp" alt="" className="dive-still" />
+   <video ref={dive} className="dive-video" muted playsInline preload={phase==='idle'?'metadata':'auto'} style={{opacity:diveFallback?0:1}}
+    onPlaying={()=>{if(diveActive.current)setDiveVisible(true)}}
+    onTimeUpdate={()=>{if(diveActive.current)armDiveTimeout()}}
+    onWaiting={armDiveTimeout} onEnded={()=>arrive()} onError={diveFailed}>
+    <source src="/media/nexo-camera-dive.mp4" type="video/mp4" onError={diveFailed}/>
+   </video>
+  </div>
   {phase==='idle'&&<div className="opening-title"><p>CREADOR IA STUDIO PRESENTA</p><h1>EL ARCHIVO <span>001</span></h1><button className="power-switch" onClick={start} aria-label="Encender computadora" disabled={!media}><span>⏻</span> ENCENDER</button><small>Una ficción interactiva · No accedemos a tus archivos</small></div>}
-  <section className="nexo-arrival" tabIndex={-1} aria-label="Conexión con NEXO" hidden={phase!=='nexo'}><div className="nexo-orbit"/><p>TRANSMISIÓN RESTABLECIDA</p><h2>NEXO</h2><p>Tu idea sigue aquí.</p><small>Fin de la apertura · Prototipo para revisión visual</small><Link href="/experiencia">Continuar al recorrido anterior →</Link></section>
+  <section className="nexo-arrival" tabIndex={-1} aria-label="Conexión con NEXO" hidden={phase!=='nexo'}><div className="nexo-orbit"/><p>PERSONAJE NARRATIVO</p><h2>NEXO</h2><NexoDialogue sound={sound}/><small>Fin de la apertura · Prototipo para revisión visual</small><Link href="/experiencia">Continuar al recorrido anterior →</Link></section>
   <div className="film-grain" aria-hidden="true"/>
   <footer className="film-footer"><p className="film-subtitle" aria-live="polite">{subtitle}</p>{audioError&&<p role="status">{audioError}</p>}<div><span>01 / EL ARCHIVO PERDIDO</span><span>PROTOTIPO AUDIOVISUAL{reduced?' · MOVIMIENTO REDUCIDO':''}</span></div></footer>
  </main>

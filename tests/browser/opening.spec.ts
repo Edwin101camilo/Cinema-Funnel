@@ -13,7 +13,7 @@ for(const reduced of [false,true]){
   await expect(file).toBeFocused();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
   await file.click();
-  await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:7000});
+  await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:15000});
   await page.getByRole('button',{name:'SONIDO ON',exact:true}).click();
   await expect(page.getByRole('button',{name:'SONIDO OFF',exact:true})).toHaveAttribute('aria-pressed','false');
   await expect(page.getByRole('link',{name:'VER PRODUCTO'})).toHaveAttribute('href','/oferta');
@@ -38,7 +38,7 @@ test('intro plays once, still matches geometry and remains interactive',async({p
  expect(file!.x).toBeGreaterThanOrEqual(monitor!.x);
  expect(file!.x+file!.width).toBeLessThanOrEqual(monitor!.x+monitor!.width);
  await page.getByRole('button',{name:'Abrir archivo IDEA 001'}).click();
- await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:7000});
+ await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:15000});
 });
 test('failed video falls back to interactive still',async({page})=>{
  await page.route('**/studio-intro-*.mp4',route=>route.abort());
@@ -60,10 +60,35 @@ test('vertical mobile frame and touch target across iPhone sizes',async({page})=
   expect(box!.height).toBeGreaterThanOrEqual(112);
   expect(box!.y).toBeGreaterThanOrEqual(monitor!.y);
   expect(box!.y+box!.height).toBeLessThanOrEqual(monitor!.y+monitor!.height);
-  await expect(page.locator('video')).toHaveAttribute('preload','metadata');
-  await expect(page.locator('video source')).toHaveAttribute('src','/cinema/scene-01/studio-intro-mobile.mp4');
+  await expect(page.locator('.cinema-intro')).toHaveAttribute('preload','metadata');
+  await expect(page.locator('.cinema-intro source')).toHaveAttribute('src','/cinema/scene-01/studio-intro-mobile.mp4');
   const plane=await page.locator('.cinema-plane').boundingBox();
   expect(plane!.width/plane!.height).toBeCloseTo(512/910,2);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
  }
+});
+
+test('dive playback holds last frame and presents unsynthesized dialogue',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await page.getByRole('button',{name:'Abrir archivo IDEA 001'}).click({timeout:15000});
+ const dive=page.locator('.dive-video');
+ await expect(dive).toHaveJSProperty('muted',true);
+ await expect(page.getByRole('button',{name:'Abrir archivo IDEA 001'})).toBeDisabled();
+ await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:15000});
+ await expect(dive).toHaveJSProperty('ended',true);
+ await expect(dive).toHaveCount(1);
+ await expect(dive).toHaveCSS('opacity','1');
+ await expect(page.getByText('Espera… ¿puedes escucharme?',{exact:true})).toBeVisible();
+ await expect(page.getByText('Bien. Entonces el archivo llegó a la persona correcta.',{exact:true})).toBeVisible();
+ await expect(page.locator('.nexo-dialogue audio')).toHaveCount(0);
+});
+test('dive failed download still reaches NEXO without black screen',async({page})=>{
+ await page.route('**/nexo-camera-dive.mp4',route=>route.abort());
+ await page.goto('/');
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await page.getByRole('button',{name:'Abrir archivo IDEA 001'}).click({timeout:15000});
+ await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:15000});
+ await expect(page.locator('.dive-still')).toHaveJSProperty('complete',true);
+ await expect(page.locator('.dive-video')).toHaveCSS('opacity','0');
 });
