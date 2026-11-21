@@ -53,3 +53,45 @@
 .opening .nexo-dialogue .voice-error{font:12px/1.5 Arial,sans-serif;color:#ddc5bf}
 .nexo-continue{display:inline-block;margin-top:20px;animation:file-reveal .5s both}
 @media(prefers-reduced-motion:reduce){.transmission-wave i{animation:none}}
+/* Original red transmission identity. All additions stay within the opening. */
+.opening{--boot-light:0;--red:#D62839;--cream:#F4EADB;background:#141414;color:var(--cream)}
+.opening-title{background:linear-gradient(0deg,#14141455,transparent 60%);justify-content:flex-start;padding-top:13svh;pointer-events:none}
+.opening-title>*{pointer-events:auto}
+.opening-title p{font-size:9px;letter-spacing:.22em;color:#F4EADB}
+.opening-title h1{font-size:clamp(26px,7vw,44px);letter-spacing:.05em;margin:9px 0 18px;text-shadow:0 3px 18px #141414}
+.opening-title h1 span{display:inline;font:inherit;color:#f59c9f;margin-left:8px}
+.power-switch{position:absolute;top:43%;gap:10px;color:#F4EADB;font-size:10px;letter-spacing:.2em}
+.power-switch span{width:58px;height:58px;background:#14141466;border-color:#D6283988;box-shadow:0 0 30px #D6283922}
+.opening-title small{position:absolute;bottom:12%;font-size:9px}
+.desk-reflection{position:absolute;inset:52% 0 5%;background:radial-gradient(ellipse at 50% 0,#D62839,transparent 70%);opacity:var(--boot-light);mix-blend-mode:screen;pointer-events:none;transition:opacity .15s linear}
+.boot-scan{position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(transparent 48%,#f3b8b044 50%,transparent 52%);background-size:100% 200%}
+.opening[data-phase=boot] .boot-scan{opacity:.6;animation:monitor-scan 3s ease-in-out 2}
+@keyframes monitor-scan{from{background-position:0 100%}to{background-position:0 -100%}}
+.system-boot{position:absolute;z-index:4;left:22px;right:22px;bottom:15%;text-align:center;pointer-events:none}
+.system-boot[hidden]{display:none}
+.system-boot button{pointer-events:auto;font-size:12px}
+.system-indicator{font:8px monospace;letter-spacing:.16em;color:#d7a19d;display:flex;justify-content:center;align-items:center;gap:8px}
+.system-indicator i{width:4px;height:4px;background:#D62839;border-radius:50%;box-shadow:0 0 12px #D62839}
+.system-caption{font:16px/1.5 Georgia,serif;min-height:48px;margin:12px auto;text-shadow:0 2px 8px #141414}
+.system-boot[data-stage=identified] .system-indicator{opacity:.6}
+.opening[data-phase=file] .system-boot{display:none}
+.opening[data-phase=travel] .mystery-file svg{fill:#F4EADB;filter:drop-shadow(0 0 25px #D62839)}
+.file-response{position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0;background:radial-gradient(ellipse at 50% 44%,#D6283922,transparent 55%)}
+.opening[data-phase=travel] .file-response{animation:file-reveal .15s ease alternate 2}
+.film-controls{color:#F4EADB;text-shadow:0 2px 7px #141414;background:linear-gradient(#14141488,transparent)}
+.hologram{--signal:0;position:relative;width:210px;height:210px;margin:0 auto 18px;perspective:500px;isolation:isolate}
+.holo-core{position:absolute;inset:30%;border-radius:50%;background:radial-gradient(circle,#F4EADB22,#D6283955 38%,transparent 70%);opacity:calc(.3 + var(--signal)*.7);transform:scale(calc(.85 + var(--signal)*.3));box-shadow:0 0 60px #9E1B2A33}
+.holo-ring{position:absolute;inset:14%;border:1px solid #D6283977;border-radius:50%;box-shadow:0 0 18px #9E1B2A33,inset 0 0 18px #9E1B2A22;opacity:calc(.35 + var(--signal)*.55)}
+.ring-a{transform:rotateX(52deg) rotateZ(-22deg)}
+.ring-b{inset:20%;transform:rotateY(48deg) rotateZ(32deg);border-color:#F4EADB44}
+.holo-dust{position:absolute;inset:6%;background:radial-gradient(circle at 15% 25%,#F4EADB99 0 1px,transparent 2px),radial-gradient(circle at 85% 72%,#D62839 0 1px,transparent 2px),radial-gradient(circle at 26% 86%,#D6283988 0 1px,transparent 2px),radial-gradient(circle at 77% 12%,#F4EADB66 0 1px,transparent 2px);opacity:calc(.35 + var(--signal)*.65)}
+.hologram .transmission-wave{position:absolute;inset:0;height:auto;gap:5px}
+.hologram .transmission-wave i{animation:none!important;height:2px;width:2px;background:#F4EADB;transform:scaleY(calc(1 + var(--signal)*13));opacity:calc(.3 + var(--signal)*.7);transition:transform .07s linear}
+.hologram .transmission-wave i:nth-child(2n){transform:scaleY(calc(1 + var(--signal)*8))}
+.hologram .transmission-wave i:nth-child(3n){transform:scaleY(calc(1 + var(--signal)*18))}
+.nexo-caption span{animation:caption-arrive .25s ease both}
+@keyframes caption-arrive{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.opening .nexo-arrival h2{margin-bottom:5px;color:#F4EADB}
+.opening .nexo-dialogue .transmission-label{margin:0 auto 25px}
+@media(max-height:650px){.hologram{width:150px;height:150px;margin-bottom:5px}.opening .nexo-arrival{padding:55px 24px}.nexo-caption{min-height:85px}.system-boot{bottom:13%}}
+@media(prefers-reduced-motion:reduce){.boot-scan{display:none}.holo-core,.holo-ring,.holo-dust{transform:none;opacity:.5}.hologram .transmission-wave i{transform:none!important;opacity:.6}.desk-reflection{transition:none}}

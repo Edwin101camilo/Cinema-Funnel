@@ -119,3 +119,21 @@ test('blocked audio provides explicit action and silent subtitles',async({page})
  await expect(page.locator('.nexo-caption')).toContainText('¿Puedes escucharme?',{timeout:4000});
  await expect(page.getByRole('link',{name:'Continuar →',exact:true})).toBeVisible({timeout:8000});
 });
+test('SYSTEM recording drives boot captions without gating file',async({page})=>{
+ await page.goto('/');
+ await page.getByRole('button',{name:'SONIDO OFF',exact:true}).click();
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ const voice=page.locator('.system-boot audio');
+ await expect.poll(()=>voice.evaluate((a:HTMLAudioElement)=>a.paused)).toBe(false);
+ await expect(page.locator('.system-caption')).toContainText('Sistema restablecido');
+ await expect(page.locator('.system-caption')).toContainText('Se ha detectado',{timeout:4000});
+ await expect(page.locator('.system-caption')).toContainText('Identificador',{timeout:4000});
+ await expect(page.getByRole('button',{name:'Abrir archivo IDEA 001'})).toBeVisible({timeout:8000});
+});
+test('SYSTEM failure does not block the archive',async({page})=>{
+ await page.route('**/sistema-inicio.mp3',r=>r.abort());
+ await page.goto('/');
+ await page.getByRole('button',{name:'SONIDO OFF',exact:true}).click();
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await expect(page.getByRole('button',{name:'Abrir archivo IDEA 001'})).toBeVisible({timeout:15000});
+});
