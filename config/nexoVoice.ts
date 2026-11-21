@@ -1,8 +1,11 @@
-// Set only when the licensed final recording and measured cue times are supplied.
-export const nexoVoice: {src:string|null;cues:{text:string;start:number|null;end:number|null}[]} = {
- src:null,
+export const nexoVoice = {
+ src:'/audio/nexo/nexo-intro.mp3',
+ captions:'/audio/nexo/nexo-intro.vtt',
+ duration:7.236,
  cues:[
-  {text:'Espera… ¿puedes escucharme?',start:null,end:null},
-  {text:'Bien. Entonces el archivo llegó a la persona correcta.',start:null,end:null}
+  {text:'Espera...',start:.070,end:.730},
+  {text:'¿Puedes escucharme?',start:1.480,end:2.710},
+  {text:'Bien.',start:3.040,end:3.780},
+  {text:'Entonces el archivo llegó a la persona correcta.',start:4.030,end:7.150}
  ]
 };

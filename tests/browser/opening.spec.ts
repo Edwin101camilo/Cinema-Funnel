@@ -79,9 +79,8 @@ test('dive playback holds last frame and presents unsynthesized dialogue',async(
  await expect(dive).toHaveJSProperty('ended',true);
  await expect(dive).toHaveCount(1);
  await expect(dive).toHaveCSS('opacity','1');
- await expect(page.getByText('Espera… ¿puedes escucharme?',{exact:true})).toBeVisible();
- await expect(page.getByText('Bien. Entonces el archivo llegó a la persona correcta.',{exact:true})).toBeVisible();
- await expect(page.locator('.nexo-dialogue audio')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Reproducir voz'})).toBeVisible();
+ await expect(page.locator('.nexo-dialogue audio')).toHaveAttribute('src','/audio/nexo/nexo-intro.mp3');
 });
 test('dive failed download still reaches NEXO without black screen',async({page})=>{
  await page.route('**/nexo-camera-dive.mp4',route=>route.abort());
@@ -91,4 +90,32 @@ test('dive failed download still reaches NEXO without black screen',async({page}
  await expect(page.getByRole('heading',{name:'NEXO',exact:true})).toBeVisible({timeout:15000});
  await expect(page.locator('.dive-still')).toHaveJSProperty('complete',true);
  await expect(page.locator('.dive-video')).toHaveCSS('opacity','0');
+});
+
+test('real NEXO voice, captions, pause and delayed continue',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/');
+ await page.getByRole('button',{name:'SONIDO OFF',exact:true}).click();
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await page.getByRole('button',{name:'Abrir archivo IDEA 001'}).click();
+ const audio=page.locator('.nexo-dialogue audio');
+ await expect.poll(()=>audio.evaluate((a:HTMLAudioElement)=>a.paused)).toBe(false);
+ await expect(page.locator('.nexo-caption')).toContainText('¿Puedes escucharme?',{timeout:4000});
+ await page.getByRole('button',{name:'SONIDO ON',exact:true}).click();
+ await expect(audio).toHaveJSProperty('paused',true);
+ await page.getByRole('button',{name:'Reproducir voz'}).click();
+ await expect(page.locator('.nexo-caption')).toContainText('Entonces el archivo llegó',{timeout:7000});
+ await expect(page.getByRole('link',{name:'Continuar →',exact:true})).toBeVisible({timeout:6000});
+});
+test('blocked audio provides explicit action and silent subtitles',async({page})=>{
+ await page.addInitScript(()=>{const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){return this.tagName==='AUDIO'?Promise.reject(new DOMException('blocked','NotAllowedError')):play.call(this)}});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/');
+ await page.getByRole('button',{name:'SONIDO OFF',exact:true}).click();
+ await page.getByRole('button',{name:'Encender computadora'}).click();
+ await page.getByRole('button',{name:'Abrir archivo IDEA 001'}).click();
+ await expect(page.getByRole('button',{name:'Reproducir voz'})).toBeVisible();
+ await page.getByRole('button',{name:'Leer sin sonido'}).click();
+ await expect(page.locator('.nexo-caption')).toContainText('¿Puedes escucharme?',{timeout:4000});
+ await expect(page.getByRole('link',{name:'Continuar →',exact:true})).toBeVisible({timeout:8000});
 });

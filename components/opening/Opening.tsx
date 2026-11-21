@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import Link from 'next/link';
 import {gsap} from 'gsap';
 import {OpeningAudio} from './audio';
@@ -21,6 +21,8 @@ export default function Opening(){
  const dive=useRef<HTMLVideoElement>(null),diveActive=useRef(false),diveDone=useRef(false);
  const diveTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const [diveVisible,setDiveVisible]=useState(false),[diveFallback,setDiveFallback]=useState(false);
+ const duck=useCallback((v:boolean)=>audio.current?.duck(v),[]);
+ const enableVoiceSound=()=>{if(!sound)void toggleSound()};
  function say(text:string){setSubtitle(text)}
  function arrive(fallback=false){
   if(diveDone.current)return;
@@ -71,7 +73,7 @@ export default function Opening(){
  }
  useEffect(()=>{if(phase==='file')root.current?.querySelector<HTMLButtonElement>('.mystery-file')?.focus({preventScroll:true});if(phase==='nexo')root.current?.querySelector<HTMLElement>('.nexo-arrival')?.focus({preventScroll:true})},[phase]);
  return <main ref={root} className="opening" data-phase={phase} data-reduced={reduced}>
-  <header className="film-controls"><Link href="/oferta">VER PRODUCTO ↗</Link><div><button onClick={toggleSound} aria-pressed={sound}>{sound?'SONIDO ON':'SONIDO OFF'}</button><span className="voice-pending">VOZ PENDIENTE</span></div></header>
+  <header className="film-controls"><Link href="/oferta">VER PRODUCTO ↗</Link><div><button onClick={toggleSound} aria-pressed={sound}>{sound?'SONIDO ON':'SONIDO OFF'}</button></div></header>
   <div className="camera" aria-hidden={phase==='nexo'}>
    <div className="cinema-backdrop" aria-hidden="true"/>
    <div className="cinema-plane">
@@ -98,7 +100,7 @@ export default function Opening(){
    </video>
   </div>
   {phase==='idle'&&<div className="opening-title"><p>CREADOR IA STUDIO PRESENTA</p><h1>EL ARCHIVO <span>001</span></h1><button className="power-switch" onClick={start} aria-label="Encender computadora" disabled={!media}><span>⏻</span> ENCENDER</button><small>Una ficción interactiva · No accedemos a tus archivos</small></div>}
-  <section className="nexo-arrival" tabIndex={-1} aria-label="Conexión con NEXO" hidden={phase!=='nexo'}><div className="nexo-orbit"/><p>PERSONAJE NARRATIVO</p><h2>NEXO</h2><NexoDialogue sound={sound}/><small>Fin de la apertura · Prototipo para revisión visual</small><Link href="/experiencia">Continuar al recorrido anterior →</Link></section>
+  <section className="nexo-arrival" tabIndex={-1} aria-label="Conexión con NEXO" hidden={phase!=='nexo'}><h2>NEXO</h2><NexoDialogue sound={sound} active={phase==='nexo'} onEnable={enableVoiceSound} onSpeaking={duck}/></section>
   <div className="film-grain" aria-hidden="true"/>
   <footer className="film-footer"><p className="film-subtitle" aria-live="polite">{subtitle}</p>{audioError&&<p role="status">{audioError}</p>}<div><span>01 / EL ARCHIVO PERDIDO</span><span>PROTOTIPO AUDIOVISUAL{reduced?' · MOVIMIENTO REDUCIDO':''}</span></div></footer>
  </main>

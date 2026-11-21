@@ -40,3 +40,16 @@
 @media(max-width:700px){.cinema-plane{width:max(100vw,56.263736svh)}}
 @media(prefers-reduced-motion:reduce){.dive-layer{transition:none}}
 @media(max-width:700px){.real-monitor .screen-notification{left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:80%;text-align:center;animation:file-reveal 1s both}}
+.opening .nexo-arrival h2{font:18px monospace;letter-spacing:.6em;color:#e3b9b0;margin:0 0 22px}
+.nexo-dialogue{width:min(100%,430px)}
+.transmission-wave{height:80px;display:flex;align-items:center;justify-content:center;gap:7px}
+.transmission-wave i{display:block;width:2px;height:12px;background:#eb9f93;box-shadow:0 0 16px #db5a4b88;transform-origin:center;animation:nexo-wave 1.3s ease-in-out infinite;animation-play-state:paused}
+.nexo-dialogue[data-speaking=true] .transmission-wave i{animation-play-state:running}
+@keyframes nexo-wave{0%,100%{transform:scaleY(.5);opacity:.45}50%{transform:scaleY(3);opacity:.9}}
+.opening .nexo-dialogue .transmission-label{font:9px monospace;letter-spacing:.2em;color:#c7968e;margin:18px auto 30px}
+.nexo-caption{min-height:105px;display:grid;place-items:center;font:clamp(18px,4.6vw,22px)/1.5 Georgia,serif;text-shadow:0 2px 12px #000}
+.voice-actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.voice-actions button,.nexo-dialogue>.textbtn{font-size:12px;border-bottom:1px solid #ad7974;padding:14px;min-height:44px}
+.opening .nexo-dialogue .voice-error{font:12px/1.5 Arial,sans-serif;color:#ddc5bf}
+.nexo-continue{display:inline-block;margin-top:20px;animation:file-reveal .5s both}
+@media(prefers-reduced-motion:reduce){.transmission-wave i{animation:none}}
