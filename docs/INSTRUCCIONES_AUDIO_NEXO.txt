@@ -1,0 +1,19 @@
+CINEMA FUNNEL — INTRODUCCIÓN DE NEXO (AUDIO REAL)
+
+Se incluyen:
+- nexo-intro.mp3: grabación original de ElevenLabs enviada por el creador.
+- nexo-intro.vtt: propuesta de subtítulos por frases; sincronización aproximada que debe validarse visual y auditivamente.
+
+Encargo:
+- Inspecciona el flujo vigente tras el video de entrada al monitor. No reconstruyas la página ni alteres escenas posteriores.
+- Integra audio y subtítulos en la escena NEXO. La grabación dura 7.236 s, mono, 44.1 kHz.
+- Reproduce el audio desde la primera aparición de NEXO; no reproduzcas automáticamente si iOS Safari no permite audio.
+- Aprovecha el gesto previo del usuario al pulsar IDEA_001 para habilitar audio si es compatible; maneja play() rechazado y ofrece control explícito Reproducir voz.
+- Muestra primero una señal/onda abstracta de transmisión que reaccione al audio (si no hay análisis de audio fiable, animación discreta, no fingir que es reactiva).
+- Muestra subtítulos según VTT en frases; ajusta tiempos observando la reproducción real si hace falta.
+- Evita mostrar de inmediato todo el texto o una tarjeta grande. Usa HTML accesible sobre el último fotograma/fondo de transición.
+- No introduzcas música que opaque la voz; si hay ambiente, haz ducking bajo la voz. Añade botón silencio y activa los subtítulos por defecto.
+- Cuando termine la grabación, deja un silencio breve y revela Continuar, pero conserva Saltar hacia la demo/oferta.
+- Para reduced motion reduce los efectos; incluye fallback sin sonido y sin video.
+- No conviertas NEXO en chatbot: es personaje narrativo.
+- Prueba build, iOS Safari si posible, y reporta limitaciones reales.

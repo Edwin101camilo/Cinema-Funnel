@@ -1,8 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('complete journey, persistence, NEXO and offer',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/');
- await page.getByRole('link',{name:'ABRIR ARCHIVO'}).click();
+ await page.goto('/experiencia');
  await page.getByRole('button',{name:'ABRIR ARCHIVO'}).click();
  await page.getByRole('button',{name:'No sé programar'}).click();
  await page.getByRole('button',{name:'CONTINUAR'}).click();
