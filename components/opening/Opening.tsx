@@ -6,6 +6,7 @@ import {OpeningAudio} from './audio';
 import {openingMedia,mobileOpeningMedia} from '@/config/opening';
 import './opening.css';
 import NexoDialogue from './NexoDialogue';
+import {track} from '@/lib/analytics';
 import SystemBoot from './SystemBoot';
 
 export default function Opening(){
@@ -37,6 +38,7 @@ export default function Opening(){
   diveTimer.current=setTimeout(()=>{if(!document.hidden&&diveActive.current)arrive(true)},8000);
  }
  useEffect(()=>{
+  track('experience_start');
   setMedia(matchMedia('(max-width: 700px)').matches?mobileOpeningMedia:openingMedia);
   audio.current=new OpeningAudio();
   const q=matchMedia('(prefers-reduced-motion: reduce)');setReduced(q.matches);
@@ -57,7 +59,7 @@ export default function Opening(){
   audio.current?.cue(660);say('Un archivo sigue esperando. Tócalo para abrirlo.');
  }
  function start(){
-  if(busy.current||finished.current)return;busy.current=true;setPhase('boot');
+  if(busy.current||finished.current)return;busy.current=true;setPhase('boot');track('monitor_power_on');
   say('');audio.current?.cue(100,1.5);
   if(reduced||mediaFailed||clip.current?.error||clip.current?.networkState===3){finishIntro();return}
   playing.current=true;
@@ -65,7 +67,7 @@ export default function Opening(){
   void clip.current?.play().catch(()=>{setMediaFailed(true);finishIntro()});
  }
  function open(){
-  if(busy.current||phase!=='file')return;busy.current=true;setPhase('travel');setSubtitle('');
+  if(busy.current||phase!=='file')return;busy.current=true;setPhase('travel');track('file_opened');setSubtitle('');
   timeline.current?.kill();
   gsap.to(root.current?.querySelector('.real-monitor')||[],{opacity:0,duration:reduced?0:.3});
   if(reduced){arrive(true);return}
@@ -74,7 +76,7 @@ export default function Opening(){
  }
  useEffect(()=>{if(phase==='file')root.current?.querySelector<HTMLButtonElement>('.mystery-file')?.focus({preventScroll:true});if(phase==='nexo')root.current?.querySelector<HTMLElement>('.nexo-arrival')?.focus({preventScroll:true})},[phase]);
  return <main ref={root} className="opening" data-phase={phase} data-reduced={reduced}>
-  <header className="film-controls"><Link href="/oferta">VER PRODUCTO ↗</Link><div><button onClick={toggleSound} aria-pressed={sound}>{sound?'SONIDO ON':'SONIDO OFF'}</button></div></header>
+  <header className="film-controls"><Link href="/oferta">VER PRODUCTO ↗</Link><Link href="/demostracion">VER DEMO</Link><div><button onClick={toggleSound} aria-pressed={sound}>{sound?'SONIDO ON':'SONIDO OFF'}</button></div></header>
   <div className="file-response" aria-hidden="true"/>
   <div className="camera" aria-hidden={phase==='nexo'}>
    <div className="cinema-backdrop" aria-hidden="true"/>
@@ -95,14 +97,14 @@ export default function Opening(){
   <div className="dive-layer" aria-hidden="true" style={{opacity:diveVisible||diveFallback?1:0}}>
    {/* eslint-disable-next-line @next/next/no-img-element */}
    <img src="/media/nexo-dive-last.webp" alt="" className="dive-still" />
-   <video ref={dive} className="dive-video" muted playsInline preload={phase==='idle'?'metadata':'auto'} style={{opacity:diveFallback?0:1}}
+   <video ref={dive} className="dive-video" muted playsInline preload={phase==='idle'?'none':'auto'} style={{opacity:diveFallback?0:1}}
     onPlaying={()=>{if(diveActive.current)setDiveVisible(true)}}
     onTimeUpdate={()=>{if(diveActive.current)armDiveTimeout()}}
     onWaiting={armDiveTimeout} onEnded={()=>arrive()} onError={diveFailed}>
     <source src="/media/nexo-camera-dive.mp4" type="video/mp4" onError={diveFailed}/>
    </video>
   </div>
-  {phase==='idle'&&<div className="opening-title"><p>CREADOR IA STUDIO PRESENTA</p><h1>EL ARCHIVO <span>001</span></h1><button className="power-switch" onClick={start} aria-label="Encender computadora" disabled={!media}><span>⏻</span> ENCENDER</button><small>Una ficción interactiva · No accedemos a tus archivos</small></div>}
+  {phase==='idle'&&<div className="opening-title"><p>CREADOR IA STUDIO PRESENTA</p><h1>EL ARCHIVO <span>001</span></h1><button className="power-switch" onClick={start} aria-label="Encender computadora" disabled={!media}><span>⏻</span> ENCENDER</button><small>Videos 2D y 3D con IA · Herramienta descargable<br/>Una ficción interactiva · No accedemos a tus archivos</small></div>}
   <section className="nexo-arrival" tabIndex={-1} aria-label="Conexión con NEXO" hidden={phase!=='nexo'}><h2>NEXO</h2><NexoDialogue sound={sound} active={phase==='nexo'} onEnable={enableVoiceSound} onSpeaking={duck}/></section>
   <div className="film-grain" aria-hidden="true"/>
   <footer className="film-footer"><p className="film-subtitle" aria-live="polite">{subtitle}</p>{audioError&&<p role="status">{audioError}</p>}<div><span>01 / EL ARCHIVO PERDIDO</span><span>PROTOTIPO AUDIOVISUAL{reduced?' · MOVIMIENTO REDUCIDO':''}</span></div></footer>

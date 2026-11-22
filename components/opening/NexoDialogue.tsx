@@ -1,14 +1,16 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import Link from 'next/link';
+import {useRouter} from 'next/navigation';
+import {track} from '@/lib/analytics';
 import envelope from '@/config/nexoEnvelope.json';
 import {nexoVoice} from '@/config/nexoVoice';
 export default function NexoDialogue({sound,active,onEnable,onSpeaking}:{sound:boolean;active:boolean;onEnable:()=>void;onSpeaking:(v:boolean)=>void}){
+ const router=useRouter();
  const audio=useRef<HTMLAudioElement>(null),frame=useRef(0),finishTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const [time,setTime]=useState(0),[error,setError]=useState(''),[playing,setPlaying]=useState(false),[silent,setSilent]=useState(false),[done,setDone]=useState(false);
  const signal=useRef<HTMLDivElement>(null);
  const clock=useRef(0),last=useRef(0);
- function finish(){setPlaying(false);setSilent(false);onSpeaking(false);if(finishTimer.current)clearTimeout(finishTimer.current);finishTimer.current=setTimeout(()=>setDone(true),650)}
+ function finish(){setPlaying(false);setSilent(false);onSpeaking(false);if(finishTimer.current)clearTimeout(finishTimer.current);finishTimer.current=setTimeout(()=>{setDone(true);track('nexo_completed',{dialogue:1});try{sessionStorage.setItem('cf_sound',sound?'on':'off')}catch{}router.push('/descubrir')},650)}
  function play(){
   if(!audio.current)return;
   setError('');setSilent(false);setDone(false);
@@ -39,6 +41,6 @@ export default function NexoDialogue({sound,active,onEnable,onSpeaking}:{sound:b
   {error&&<p className="voice-error" role="status">{error}</p>}
   {!playing&&!silent&&!done&&<div className="voice-actions"><button className="textbtn" onClick={()=>{if(!sound)onEnable();play()}}>Reproducir voz</button><button className="textbtn" onClick={()=>{audio.current?.pause();setError('');clock.current=0;setTime(0);setSilent(true)}}>Leer sin sonido</button></div>}
   {playing&&<button className="textbtn" onClick={()=>audio.current?.pause()}>Pausar voz</button>}
-  {done&&<Link className="nexo-continue" href="/experiencia">Continuar →</Link>}
+  <button className="textbtn" onClick={()=>{audio.current?.pause();try{sessionStorage.setItem('cf_sound',sound?'on':'off')}catch{}router.push('/descubrir')}}>Continuar al diagnóstico →</button>
  </div>
 }

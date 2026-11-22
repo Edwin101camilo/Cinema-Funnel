@@ -105,7 +105,7 @@ test('real NEXO voice, captions, pause and delayed continue',async({page})=>{
  await expect(audio).toHaveJSProperty('paused',true);
  await page.getByRole('button',{name:'Reproducir voz'}).click();
  await expect(page.locator('.nexo-caption')).toContainText('Entonces el archivo llegó',{timeout:7000});
- await expect(page.getByRole('link',{name:'Continuar →',exact:true})).toBeVisible({timeout:6000});
+ await expect(page).toHaveURL(/descubrir/,{timeout:6000});
 });
 test('blocked audio provides explicit action and silent subtitles',async({page})=>{
  await page.addInitScript(()=>{const play=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){return this.tagName==='AUDIO'?Promise.reject(new DOMException('blocked','NotAllowedError')):play.call(this)}});
@@ -117,7 +117,7 @@ test('blocked audio provides explicit action and silent subtitles',async({page})
  await expect(page.getByRole('button',{name:'Reproducir voz'})).toBeVisible();
  await page.getByRole('button',{name:'Leer sin sonido'}).click();
  await expect(page.locator('.nexo-caption')).toContainText('¿Puedes escucharme?',{timeout:4000});
- await expect(page.getByRole('link',{name:'Continuar →',exact:true})).toBeVisible({timeout:8000});
+ await expect(page).toHaveURL(/descubrir/,{timeout:8000});
 });
 test('SYSTEM recording drives boot captions without gating file',async({page})=>{
  await page.goto('/');
